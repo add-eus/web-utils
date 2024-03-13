@@ -9,7 +9,7 @@
   "author": "mallanic <maxime@allanic.me>",
   "license": "ISC",
   "dependencies": {
-    "firebase": "^9.18.0"
+    "firebase": "^10.8.1"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
