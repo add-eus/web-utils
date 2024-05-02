@@ -10,9 +10,10 @@ import { getPerformance, initializePerformance } from "firebase/performance";
 import { fetchAndActivate, getRemoteConfig } from "firebase/remote-config";
 import { connectStorageEmulator, getStorage } from "firebase/storage";
 
+const global = window as any;
 export function useFirebase() {
-    if (window.providers === undefined) {
-        window.providers = {};
+    if (global.providers === undefined) {
+        global.providers = {};
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -27,19 +28,19 @@ export function useFirebase() {
         };
 
         // Initialize Firebase
-        window.providers.app = initializeApp(firebaseConfig);
+        global.providers.app = initializeApp(firebaseConfig);
 
-        window.providers.auth = getAuth(window.providers.app);
-        window.providers.firestore = getFirestore(window.providers.app);
-        window.providers.database = getDatabase(window.providers.app);
-        window.providers.storage = getStorage(window.providers.app);
-        window.providers.functions = getFunctions(window.providers.app, "europe-west1");
+        global.providers.auth = getAuth(global.providers.app);
+        global.providers.firestore = getFirestore(global.providers.app);
+        global.providers.database = getDatabase(global.providers.app);
+        global.providers.storage = getStorage(global.providers.app);
+        global.providers.functions = getFunctions(global.providers.app, "europe-west1");
 
-        window.providers.remoteConfig = getRemoteConfig(window.providers.app);
+        global.providers.remoteConfig = getRemoteConfig(global.providers.app);
 
-        void fetchAndActivate(window.providers.remoteConfig);
+        void fetchAndActivate(global.providers.remoteConfig);
 
-        if (import.meta.env.DEV && (<any>window).emulatorLoaded !== true) {
+        if (import.meta.env.DEV && global.emulatorLoaded !== true) {
             // eslint-disable-next-line no-console
             console.log("Development mode");
 
@@ -49,7 +50,7 @@ export function useFirebase() {
                     : "localhost";
 
             connectAuthEmulator(
-                window.providers.auth,
+                global.providers.auth,
                 import.meta.env.VITE_FIRESTORE_AUTH_HOST !== undefined
                     ? import.meta.env.VITE_FIRESTORE_AUTH_HOST
                     : `http://${host}:${
@@ -60,57 +61,59 @@ export function useFirebase() {
             );
 
             connectFirestoreEmulator(
-                window.providers.firestore,
+                global.providers.firestore,
                 host,
                 import.meta.env.VITE_FIRESTORE_PORT !== undefined
-                    ? import.meta.env.VITE_FIRESTORE_PORT
+                    ? parseInt(import.meta.env.VITE_FIRESTORE_PORT)
                     : 8014,
             );
 
             connectFunctionsEmulator(
-                window.providers.functions,
+                global.providers.functions,
                 host,
                 import.meta.env.VITE_FUNCTION_PORT !== undefined
-                    ? import.meta.env.VITE_FUNCTION_PORT
+                    ? parseInt(import.meta.env.VITE_FUNCTION_PORT)
                     : 8013,
             );
 
             connectDatabaseEmulator(
-                window.providers.database,
+                global.providers.database,
                 host,
                 import.meta.env.VITE_DATABASE_PORT !== undefined
-                    ? import.meta.env.VITE_DATABASE_PORT
+                    ? parseInt(import.meta.env.VITE_DATABASE_PORT)
                     : 8015,
             );
 
             connectStorageEmulator(
-                window.providers.storage,
+                global.providers.storage,
                 host,
                 import.meta.env.VITE_STORAGE_PORT !== undefined
-                    ? import.meta.env.VITE_STORAGE_PORT
+                    ? parseInt(import.meta.env.VITE_STORAGE_PORT)
                     : 8016,
             );
 
-            (<any>window).FIREBASE_APPCHECK_DEBUG_TOKEN =
+            global.FIREBASE_APPCHECK_DEBUG_TOKEN =
                 import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN;
 
-            (<any>window).emulatorLoaded = true;
+            global.emulatorLoaded = true;
 
-            window.providers.analytics = initializeAnalytics(window.providers.app, {
-                allow_google_signals: false,
-                allow_ad_perzonalization_signals: false,
-                event_category: "dev",
+            global.providers.analytics = initializeAnalytics(global.providers.app, {
+                config: {
+                    allow_google_signals: false,
+                    allow_ad_perzonalization_signals: false,
+                    event_category: "dev",
+                }
             });
-            window.providers.performance = initializePerformance(window.providers.app, {
+            global.providers.performance = initializePerformance(global.providers.app, {
                 dataCollectionEnabled: false,
                 instrumentationEnabled: false,
             });
         } else {
-            window.providers.analytics = getAnalytics(window.providers.app);
-            window.providers.performance = getPerformance(window.providers.app);
+            global.providers.analytics = getAnalytics(global.providers.app);
+            global.providers.performance = getPerformance(global.providers.app);
         }
 
-        window.providers.check = initializeAppCheck(window.providers.app, {
+        global.providers.check = initializeAppCheck(global.providers.app, {
             provider: new ReCaptchaEnterpriseProvider(import.meta.env.VITE_RECAPTCHA_KEY),
 
             // Optional argument. If true, the SDK automatically refreshes App Check
@@ -118,5 +121,5 @@ export function useFirebase() {
             // isTokenAutoRefreshEnabled: true,
         });
     }
-    return window.providers;
+    return global.providers;
 }
